@@ -4,6 +4,8 @@ SurfaceObjectList objectList;
 TuioClient client;
 
 PImage snowscape;
+PImage christmas_song;
+PImage piano;
 
 int window; 
 // 0: val av lucka
@@ -65,6 +67,16 @@ boolean bp23 = false;
 
 int draged = -1;
 //end
+
+//julmusik
+float[] frequencys;
+float frequencyMin;
+float frequencyMax;
+float[] volumes;
+float volumeMin;
+float volumeMax;
+boolean soundOn;
+// end julmusik
 
 boolean snowing = false;
 float[] xCoords = new float[500];
@@ -130,6 +142,31 @@ void setup()
   redraw();
   objectList = new SurfaceObjectList();
   client  = new TuioClient(this);
+  
+  //*******PIANO*********
+  piano=loadImage("piano.jpg");
+  piano.resize(1280,720);
+  //********Julmusik**********
+  christmas_song=loadImage("christmas_song.jpg");
+  christmas_song.resize(1280,720);
+  //FREQUENCY
+  frequencyMin = 30;
+  frequencyMax = 880;
+  //[0] = freq7, [1] = freq8, [2] = freq9
+  frequencys = new float[3];
+  // Frequency to start is 80
+  for(int f = 0; f<frequencys.length ; f++) {
+    frequencys[f] = 80;
+  }
+  
+  //VOLUMES
+  volumeMin = 0;
+  volumeMax = 1;
+  volumes = new float[3];
+  for(int v = 0; v<volumes.length ; v++) {
+    volumes[v] = 0.0;
+  }
+  soundOn= false;
 }
 
 void draw()
@@ -212,8 +249,12 @@ void draw()
     fill(255, 200);
     text("7", w7X, w7Y+50);
   }else if (window == 1){
+    image(piano,0,0);
+    objectList.draw();
     //TODO lägg till grafik för notspelaren
   }else if (window == 2){
+    image(christmas_song,0,0);
+    objectList.draw();
     //TODO lägg till grafik för julmusikspelaren
   }else if (window == 3){
     if(bp02) {
@@ -362,6 +403,7 @@ void mouseClicked(){
   }
   if(w2Over == true){
      window = 2;
+     clientParameters.send(currentfid+" "+frequencys[0]+" "+frequencys[1]+" "+frequencys[2]+" "+volumes[0]+" "+volumes[1]+" "+volumes[2]+" "+window+"\n");
   }
   if(w3Over == true){
      window = 3;
@@ -380,6 +422,13 @@ void mouseClicked(){
   }
   if(backOver == true){
      window = 0;
+     
+     //Mute sound when you go back to menu
+     volumes[0]=0.0;
+     volumes[1]=0.0;
+     volumes[2]=0.0;
+     sendParameters();
+     
      clearVariables();
   }
 }
@@ -479,8 +528,14 @@ void refresh() {
 // called when an object is added to the scene
 void addTuiObject(Integer s_id, Integer f_id) {
   currentfid = f_id;
-  
-  if(window == 3){
+  if(window == 1) {
+    setVolume(0.4);
+    objectList.activate(s_id,f_id);
+  }else if(window == 2) {
+    setVolume(0.4); //VOLUME is 0.4
+    setFrequency(80);
+    objectList.activate(s_id,f_id);
+  } else if(window == 3){
     if(f_id == 0 && bp00 == false ){
       piece00 = new pieceObject(loadImage("SPiece_00.png"));
       bp00 = true;
@@ -575,8 +630,8 @@ void addTuiObject(Integer s_id, Integer f_id) {
 // called when an object is removed from the scene
 void removeTuiObject(Integer s_id,Integer f_id ) {
   objectList.deactivate(s_id);
+  setVolume(0.0);
   if(f_id == 3) snowing = false;
-  
 
 }
 
@@ -585,29 +640,80 @@ Float xpos1=0.0;
 // called when an object is moved
 void updateTuiObject (Integer s_id, Integer f_id, Float xpos2, Float ypos, Float angle2) {
   objectList.update(s_id,(int)(1280 - 1280*xpos2.floatValue()),(int)(720*ypos.floatValue()),angle2.floatValue());
-  
-  angle1 = angle2;
+    if(currentfid==7) {
+      if(angle2<angle1){
+        setFrequency(frequencys[0] + 0.001);
+      }
+      if(angle2>angle1){
+        setFrequency(frequencys[0] - 0.001);
+      }
+    angle1 = angle2;
+    System.out.println("UPDATE: id: " +currentfid + " freqencys: (" + frequencys[0]+") "+"("+frequencys[1]+") "+"("+frequencys[2]+") "+" vol: "+volumes[0]+","+volumes[1]+","+volumes[2]+" window: "+window);
+    } else
+    if(currentfid==8) {
+      if(angle2<angle1){
+        setFrequency(frequencys[1] + 0.001);
+      }
+      if(angle2>angle1){
+        setFrequency(frequencys[1] - 0.001);
+      }
+    angle1 = angle2;
+    System.out.println("UPDATE: id: " +currentfid + " freqencys: (" + frequencys[0]+") "+"("+frequencys[1]+") "+"("+frequencys[2]+") "+" vol: "+volumes[0]+","+volumes[1]+","+volumes[2]+" window: "+window);
+    } else
+    if(currentfid==9) {
+      if(angle2<angle1){
+        setFrequency(frequencys[2] + 0.001);
+      }
+      if(angle2>angle1){
+        setFrequency(frequencys[2] - 0.001);
+      }
+    System.out.println("UPDATE: id: " +currentfid + " freqencys: (" + frequencys[0]+") "+"("+frequencys[1]+") "+"("+frequencys[2]+") "+" vol: "+volumes[0]+","+volumes[1]+","+volumes[2]+" window: "+window);
+    angle1 = angle2;
+    }
 }
 
-float volume = 0.6;
-float volumeMin = 0;
-float volumeMax = 1;
-
-float frequency = 80;
-float frequencyMin = 30;
-float frequencyMax = 880;
-
-boolean soundOn = false;
-
-
-
-
-//Here we send data to UDP port
-void sendParameters(){  
-  clientParameters.send(currentfid + " " + frequency + " " + volume + "\n");
-  System.out.println("update: "+currentfid+" "+frequency);
+void setFrequency(float value)
+{
+  if (window==2) {
+    if(currentfid==7) {
+        frequencys[0] = max(min(value, frequencyMax), frequencyMin); 
+        sendParameters();  
+    } else
+    if(currentfid==8) {
+        frequencys[1] = max(min(value, frequencyMax), frequencyMin); 
+        sendParameters(); 
+    } else
+    if(currentfid==9) {
+        frequencys[2] = max(min(value, frequencyMax), frequencyMin); 
+        sendParameters(); 
+    }
+  }
 }
 
+void setVolume(float value)
+{
+  if (window==2) {
+    if(currentfid==7) {
+      volumes[0] = max(min(value, volumeMax), volumeMin); 
+      sendParameters();
+    } else  
+    if(currentfid==8) {
+      volumes[1] = max(min(value, volumeMax), volumeMin); 
+      sendParameters();
+    } else
+    if(currentfid==9) {
+      volumes[2] = max(min(value, volumeMax), volumeMin); 
+      sendParameters();
+    }  
+  }
+}
+
+//Here we send data to UDP port/PURE DATA
+void sendParameters()
+{
+  clientParameters.send(currentfid+" "+frequencys[0]+" "+frequencys[1]+" "+frequencys[2]+" "+volumes[0]+" "+volumes[1]+" "+volumes[2]+"\n");
+  //System.out.println("UPDATE: id: " +currentfid + " freqencys: (" + frequencys[0]+") "+"("+frequencys[1]+") "+"("+frequencys[2]+") "+" vol: "+volumes[0]+","+volumes[1]+","+volumes[2]+" window: "+window);
+}
 
 void clearVariables(){
   bp00 = false;
@@ -624,5 +730,13 @@ void clearVariables(){
   bp23 = false;
 }
 
+void toggleSound()
+{
+  soundOn = !soundOn; 
+  if (soundOn)
+    clientSoundOnOff.send("1\n");
+  else 
+    clientSoundOnOff.send("0\n"); 
+}
 
 

@@ -30,7 +30,7 @@
 import java.util.*;
 class TuiObjectList 
 {
-  
+
   java.util.Hashtable objectList;
 
   TuiObjectList() {

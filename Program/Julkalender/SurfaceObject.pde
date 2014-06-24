@@ -24,6 +24,13 @@ class SurfaceObject extends TuiObject
   PImage p22;
   PImage p23;
   //--P
+  
+  //Musik
+  PImage note;
+  PImage letitsnow;
+  PImage feliz;
+  PImage jingle;
+  //end musik
 
   SurfaceObject(int s_id,int f_id, String fig, color c, float s) 
   {
@@ -34,6 +41,18 @@ class SurfaceObject extends TuiObject
     this.s=100;
     deg1=0;
     
+	
+	if(window == 1) {
+		note = loadImage("note.png");
+		note.resize(75,0);
+	}
+
+	if(window == 2) {
+		jingle = loadImage("jinglebells.jpg");
+		letitsnow = loadImage("letitsnow.png");
+		feliz = loadImage("feliznavidad.png");
+	}
+	
     //Puzzle snowman
     if(window == 4){
       p00 = loadImage("SPiece_00.png");
@@ -111,6 +130,42 @@ class SurfaceObject extends TuiObject
     rotate(angle);
     
     //Puzzle
+	if(window == 1) {
+		if(fid == 0){
+			image(note, 0-(note.width/2), 0-(note.height/2));
+		} else
+		if(fid == 1){
+			image(note, 0-(note.width/2), 0-(note.height/2));
+		} else
+		if(fid == 2){
+			image(note, 0-(note.width/2), 0-(note.height/2));
+		} else
+		if(fid == 3){
+			image(note, 0-(note.width/2), 0-(note.height/2));
+		} else
+		if(fid == 4){
+			image(note, 0-(note.width/2), 0-(note.height/2));
+		} else
+		if(fid == 5){
+			image(note, 0-(note.width/2), 0-(note.height/2));
+		} else
+		if(fid == 6){
+			image(note, 0-(note.width/2), 0-(note.height/2));
+		}
+	}
+	
+	if(window == 2) {
+		if(fid == 7) {
+			image(jingle, 0-(jingle.width/2), 0-(jingle.height/2));
+		} else
+		if(fid == 8) {
+			image(letitsnow, 0-(letitsnow.width/2), 0-(letitsnow.height/2));
+		} else
+		if(fid == 9) {
+			image(feliz, 0-(feliz.width/2), 0-(feliz.height/2));
+		}
+	}
+	
     if(window == 4){
         if(fid == 0){
          pic = p00;
